@@ -1,12 +1,39 @@
 import requests, socket, threading, subprocess
 from win10toast import ToastNotifier
 from time import sleep
+import win32gui, win32con
 
-LHOST = ''
+# hide = win32gui.GetForegroundWindow()
+# win32gui.ShowWindow(hide, win32con.SW_HIDE)
+
+LHOST = '0.0.0.0'
 LPORT = 8080
 BUFFER_SIZE = 1024 # Max message bytes
 
 WEBHOOK =  "https://tinyurl.com/y62xk9vx/Trigger"
+toaster = ToastNotifier()
+
+
+def incoming_call(title, message):
+    toaster.show_toast(title,
+    message,
+    icon_path="src/cell.ico",
+    duration=20,
+    threaded=True)
+
+def success_notify(title, message):
+  toaster.show_toast(title,
+  message,
+  icon_path="src/TOAST.ico",
+  duration=10,
+  threaded=True)
+
+def notification_notify(title, message):
+  toaster.show_toast(title,
+  message,
+  icon_path="src/notifiche.ico",
+  duration=10,
+  threaded=True)
 
 def _get_current_network_():
   current_wifi = subprocess.check_output("cmd.exe /c netsh wlan show interfaces | find \"SSID                   : \"")
@@ -15,20 +42,31 @@ def _get_current_network_():
 
 def server_thread():
   # Creating server
-  server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+  server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
   # Binding port
   server.bind((LHOST, LPORT))
 
-  # Reciving Data
+  # Receiving Data
   while (True):
     try:
-      data = server.recvfrom(BUFFER_SIZE)
-      title, message = data[0].decode('utf-8', errors="ignore").split(';')
+      server.listen(1)
+      (client, address) = server.accept()
 
-      # Show toast
-      toaser = ToastNotifier()
-      toaser.show_toast(title, message, threaded=True)
+      data = client.recv(BUFFER_SIZE) # Blocking instruction, wait until a message recived
+      client.close()
+      title, message = data.decode('utf-8', errors="ignore").split(';')
+    
+      print("New message:")
+      print("\ttitle: ", title)
+      print("\tmessage: ",message)
+
+      if(title == "Successo"):
+          success_notify(title, message)
+      if(title == "Chiamata in arrivo"):
+          incoming_call(title, message)
+      else:
+          notification_notify(title, message)
     except ValueError:
       pass
 
@@ -41,6 +79,7 @@ def main():
     'ip': address,
     'port': LPORT
   })
+  print("my ip is... ", address)
 
   t = threading.Thread(target=server_thread, daemon=True)
   t.start()
