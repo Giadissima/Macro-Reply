@@ -3,8 +3,9 @@ from win10toast import ToastNotifier
 from time import sleep
 import win32gui, win32con
 
-# hide = win32gui.GetForegroundWindow()
-# win32gui.ShowWindow(hide, win32con.SW_HIDE)
+
+hide = win32gui.GetForegroundWindow()
+win32gui.ShowWindow(hide, win32con.SW_HIDE)
 
 LHOST = '0.0.0.0'
 LPORT = 8080
@@ -18,21 +19,21 @@ def incoming_call(title, message):
     toaster.show_toast(title,
     message,
     icon_path="src/cell.ico",
-    duration=20,
+    duration=5,
     threaded=True)
 
 def success_notify(title, message):
   toaster.show_toast(title,
   message,
   icon_path="src/TOAST.ico",
-  duration=10,
+  duration=5,
   threaded=True)
 
 def notification_notify(title, message):
   toaster.show_toast(title,
   message,
   icon_path="src/notifiche.ico",
-  duration=10,
+  duration=5,
   threaded=True)
 
 def _get_current_network_():
@@ -41,7 +42,7 @@ def _get_current_network_():
   return current_wifi
 
 def server_thread():
-  # Creating server
+  # Creating server 
   server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
   # Binding port
